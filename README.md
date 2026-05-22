@@ -41,7 +41,7 @@ See the binary's `help` option for more details on options available
 
 ## Purpose and Usage
 
-To find a comprehensive report on this project, its purpose and how it is used, see this report [here](https://github.com/georgelipceanu/fyp/blob/main/fyp2-document)
+To find a comprehensive report on this project, its purpose and how it is used, see this report [here](https://github.com/georgelipceanu/fyp/blob/main/fyp2-document.pdf)
 
 ---
 
