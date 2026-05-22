@@ -1,0 +1,181 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: emissionreports.sustainability.susk8s
+spec:
+  group: sustainability.susk8s
+  names:
+    kind: EmissionReport
+    listKind: EmissionReportList
+    plural: emissionreports
+    shortNames:
+    - emrep
+    singular: emissionreport
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.scope
+      name: Scope
+      type: string
+    - jsonPath: .status.totals.energyKWh
+      name: Energy_kWh
+      type: number
+    - jsonPath: .status.totals.emissionsGCO2
+      name: Emissions_gCO2
+      type: number
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          EmissionReport is the Schema for the emissionreports API.
+          It materialises auditable energy and emission summaries based on Kepler and Prometheus metrics.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: EmissionReportSpec defines the parameters for generating
+              a sustainability audit.
+            properties:
+              from:
+                description: From is the start timestamp of the reporting window.
+                format: date-time
+                type: string
+              region:
+                description: Region links this report to a specific grid carbon intensity.
+                type: string
+              scope:
+                description: |-
+                  Scope defines the level of data aggregation.
+                  Valid values are: "namespace", "workload", "deployment" or "node".
+                enum:
+                - namespace
+                - workload
+                - node
+                - deployment
+                type: string
+              to:
+                description: To is the end timestamp of the reporting window.
+                format: date-time
+                type: string
+            required:
+            - from
+            - region
+            - scope
+            - to
+            type: object
+          status:
+            description: EmissionReportStatus defines the observed results of the
+              sustainability audit.
+            properties:
+              breakdown:
+                additionalProperties:
+                  description: ReportTotals represents the calculated sustainability
+                    metrics.
+                  properties:
+                    emissionsGCO2:
+                      description: EmissionsGCO2 is the estimated carbon footprint
+                        in grams of CO2.
+                      type: number
+                    energyKWh:
+                      description: EnergyKWh is the estimated energy consumption for
+                        the report period.
+                      type: number
+                  type: object
+                description: Breakdown provides a detailed view per individual entity
+                  (e.g., per namespace).
+                type: object
+              conditions:
+                description: Conditions represent the current state of report generation
+                  (e.g., Finished, DataPartial).
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              totals:
+                description: Totals contains the overall cluster-wide energy and emissions
+                  for the window.
+                properties:
+                  emissionsGCO2:
+                    description: EmissionsGCO2 is the estimated carbon footprint in
+                      grams of CO2.
+                    type: number
+                  energyKWh:
+                    description: EnergyKWh is the estimated energy consumption for
+                      the report period.
+                    type: number
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

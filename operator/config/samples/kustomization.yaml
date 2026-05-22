@@ -1,0 +1,6 @@
+## Append samples of your project ##
+resources:
+- sustainability_v1alpha1_workloadpolicy.yaml
+- sustainability_v1alpha1_carboninfo.yaml
+- sustainability_v1alpha1_emissionreport.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
