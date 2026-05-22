@@ -1,0 +1,8 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: CarbonInfo
+metadata:
+  name: test-region
+spec:
+  provider: "mock"
+  region: "UK"
+  pollSeconds: 5

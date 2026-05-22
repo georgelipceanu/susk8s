@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: susk8s-operator-monitor
+  namespace: operator-system
+  labels:
+    release: prometheus 
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  endpoints:
+  - port: https
+    path: /metrics
+    scheme: http

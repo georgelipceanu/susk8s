@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-nginx-workload
+  namespace: default
+  labels:
+    app: green-nginx
+    susk8s.io/tier: "ultra-green" 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: green-nginx
+      susk8s.io/tier: "ultra-green"
+  template:
+    metadata:
+      labels:
+        app: green-nginx
+        susk8s.io/tier: "ultra-green"
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25-alpine
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"

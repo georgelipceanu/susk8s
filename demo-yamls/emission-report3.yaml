@@ -1,0 +1,10 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: EmissionReport
+metadata:
+  name: perfect-audit
+  namespace: default
+spec:
+  scope: "namespace"
+  region: "GB" 
+  from: "2026-05-07T22:00:00Z"
+  to: "2026-05-08T00:00:00Z"

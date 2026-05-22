@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: susk8s-scheduler-config
+  namespace: kube-system
+data:
+  config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: true
+      resourceNamespace: kube-system
+      resourceName: susk8s-scheduler
+    profiles:
+    - schedulerName: susk8s-scheduler
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: susk8s-scheduler
+  namespace: kube-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: susk8s-scheduler-as-kubescheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-scheduler
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: susk8s-scheduler-leases
+  namespace: kube-system
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get","list","watch","create","update","patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: susk8s-scheduler-leases
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: susk8s-scheduler-leases
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: susk8s-scheduler-configmaps
+  namespace: kube-system
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get","list","watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: susk8s-scheduler-configmaps
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: susk8s-scheduler-configmaps
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: susk8s-scheduler-storage
+rules:
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses", "volumeattachments"]
+  verbs: ["get","list","watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: susk8s-scheduler-storage
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: susk8s-scheduler-storage
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: susk8s-scheduler
+  namespace: kube-system
+  labels:
+    app: susk8s-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: susk8s-scheduler
+  template:
+    metadata:
+      labels:
+        app: susk8s-scheduler
+    spec:
+      serviceAccountName: susk8s-scheduler
+      containers:
+      - name: kube-scheduler
+        image: registry.k8s.io/kube-scheduler:v1.33.0
+        command:
+        - kube-scheduler
+        - --config=/etc/kubernetes/scheduler/config.yaml
+        - --v=3
+        volumeMounts:
+        - name: cfg
+          mountPath: /etc/kubernetes/scheduler
+          readOnly: true
+      volumes:
+      - name: cfg
+        configMap:
+          name: susk8s-scheduler-config
+          items:
+          - key: config.yaml
+            path: config.yaml

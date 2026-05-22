@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sustainability-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sustainability-test
+  template:
+    metadata:
+      labels:
+        app: sustainability-test
+    spec:
+      schedulerName: susk8s-scheduler
+      containers:
+      - name: nginx
+        image: nginx

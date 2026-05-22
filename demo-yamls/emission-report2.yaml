@@ -1,0 +1,10 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: EmissionReport
+metadata:
+  name: live-hardware-audit
+  namespace: default
+spec:
+  scope: "namespace"
+  region: "IE"
+  from: "2026-05-01T00:00:00Z"
+  to: "2026-05-02T00:00:00Z"

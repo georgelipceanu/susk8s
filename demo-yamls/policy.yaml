@@ -1,0 +1,22 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: WorkloadPolicy
+metadata:
+  name: demo-sustainability-policy
+  namespace: default
+spec:
+  target:
+    matchLabels:
+      susk8s.io/tier: "ultra-green"
+  
+  maxCarbonIntensity: 40 # Maximum allowed gCO2/kWh before eviction triggers
+  enforcement: "hard"
+  
+  schedulerHints:
+    carbonWeight: 80 
+    utilisationWeight: 20 
+
+  reschedule:
+    enabled: true
+    mode: "hard"
+    cooldownSeconds: 30
+    evictionRateLimit: 5

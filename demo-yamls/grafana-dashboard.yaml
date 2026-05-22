@@ -1,0 +1,283 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: susk8s-custom-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"  # triggers the Grafana sidecar to load this
+data:
+  susk8s-custom.json: |-
+    {
+      "annotations": {
+        "list": []
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "title": "Regional Grid Carbon Intensity",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "expr": "susk8s_region_carbon_intensity_gco2_kwh",
+              "legendFormat": "{{region_name}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+              "unit": "gCO2/kWh"
+            }
+          }
+        },
+        {
+          "title": "Worker Node Carbon Intensity",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            {
+              "expr": "susk8s_node_carbon_intensity_gco2_kwh",
+              "legendFormat": "{{node_name}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2 },
+              "unit": "gCO2/kWh"
+            }
+          }
+        },
+        {
+          "title": "Live Node Energy Usage (Kepler)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "targets": [
+            {
+              "expr": "susk8s_node_energy_usage_joules",
+              "legendFormat": "{{node_name}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "fillOpacity": 20, "lineWidth": 1 },
+              "unit": "joule"
+            }
+          }
+        },
+        {
+          "title": "Carbon-Driven Pod Evictions (Last 5m)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "targets": [
+            {
+              "expr": "increase(susk8s_pod_evictions_total[5m])",
+              "legendFormat": "Policy: {{policy_name}} ({{namespace}})",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 0 },
+              "unit": "short"
+            }
+          }
+        },
+        {
+          "title": "CPU vs RAM Power Draw (Cluster-Wide)",
+          "type": "piechart",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "targets": [
+            {
+              "expr": "sum(rate(kepler_node_core_joules_total{job=\"kepler\"}[1m]))",
+              "legendFormat": "CPU Core Power",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(kepler_node_dram_joules_total{job=\"kepler\"}[1m]))",
+              "legendFormat": "RAM Power",
+              "refId": "B"
+            }
+          ],
+          "options": {
+            "pieType": "donut",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "tooltip": { "mode": "single", "sort": "none" },
+            "legend": { "displayMode": "list", "placement": "right" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "unit": "watt"
+            }
+          }
+        },
+        {
+          "title": "Most Power-Consuming Pods",
+          "type": "bargauge",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+          "targets": [
+            {
+              "expr": "topk(5, sum by (pod_name) (rate(kepler_container_core_joules_total{job=\"kepler\", pod_name!=\"\", pod_name!~\"kernel_processes|system_processes\"}[1m])))",
+              "legendFormat": "{{pod_name}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "min": 0,
+              "unit": "watt"
+            }
+          },
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "valueMode": "color"
+          }
+        },
+        {
+          "title": "Live Total Cluster Power Draw",
+          "type": "stat",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "targets": [
+            {
+              "expr": "sum(rate(kepler_node_platform_joules_total{job=\"kepler\"}[1m]))",
+              "legendFormat": "Total Watts",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 50 },
+                  { "color": "red", "value": 150 }
+                ]
+              },
+              "unit": "watt"
+            }
+          }
+        },
+        {
+          "title": "Real-time Power Draw by Deployment",
+          "type": "bargauge",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          "targets": [
+            {
+              "expr": "sum by (deployment) (label_replace(rate(kepler_container_core_joules_total{job=\"kepler\", pod_name!=\"\", pod_name!~\"kernel_processes|system_processes\"}[1m]), \"deployment\", \"$1\", \"pod_name\", \"(.*)-[^-]+-[^-]+$\"))",
+              "legendFormat": "{{deployment}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "min": 0,
+              "unit": "watt" 
+            }
+          },
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "horizontal",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "showUnfilled": true,
+            "valueMode": "color"
+          }
+        },
+        {
+          "title": "True Savings",
+          "type": "timeseries",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 40 },
+          "targets": [
+            {
+              "expr": "(sum(rate(kepler_node_platform_joules_total{job=\"kepler\"}[1m])) * scalar(max(susk8s_node_carbon_intensity_gco2_kwh))) / 1000",
+              "legendFormat": "Absolute Worst Case (PromQL)",
+              "refId": "A"
+            },
+            {
+              "expr": "(sum(rate(kepler_node_platform_joules_total{job=\"kepler\"}[1m])) * scalar(avg(susk8s_node_carbon_intensity_gco2_kwh))) / 1000",
+              "legendFormat": "Expected Vanilla Average (PromQL)",
+              "refId": "D"
+            },
+            {
+              "expr": "susk8s_cluster_realtime_emissions_gco2_h",
+              "legendFormat": "True Actual Emissions (Operator)",
+              "refId": "B"
+            },
+            {
+              "expr": "(sum(rate(kepler_node_platform_joules_total{job=\"kepler\"}[1m])) * scalar(min(susk8s_node_carbon_intensity_gco2_kwh))) / 1000",
+              "legendFormat": "Absolute Best Case (PromQL)",
+              "refId": "C"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2
+              },
+              "unit": "g/h"
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Absolute Worst Case (All Pods on Dirtiest Node)" },
+                "properties": [ { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } } ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Expected Vanilla Average" },
+                "properties": [ { "id": "color", "value": { "fixedColor": "grey", "mode": "fixed" } } ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "True Actual Emissions (SusK8s)" },
+                "properties": [ { "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } } ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Absolute Best Case (All Pods on Cleanest Node)" },
+                "properties": [ { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } } ]
+              }
+            ]
+          },
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          }
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["sustainability", "susk8s", "operator"],
+      "templating": { "list": [] },
+      "time": { "from": "now-15m", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "SusK8s: Live Sustainability Metrics",
+      "version": 1
+    }

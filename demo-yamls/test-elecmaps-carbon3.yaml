@@ -1,0 +1,9 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: CarbonInfo
+metadata:
+  name: live-carbon-data3
+  namespace: default
+spec:
+  provider: "electricitymaps"
+  region: "AZ"
+  pollSeconds: 60

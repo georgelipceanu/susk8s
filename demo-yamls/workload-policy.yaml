@@ -1,0 +1,21 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: WorkloadPolicy
+metadata:
+  name: full-carbon-aware-policy
+  namespace: default
+spec:
+  target:
+    matchLabels:
+      app: sustainability-test
+  maxCarbonIntensity: 400
+  enforcement: hard
+  schedulerHints:
+    carbonWeight: 80
+    utilisationWeight: 20
+    preferBinPack: true
+  reschedule:
+    enabled: true
+    mode: hard
+    cooldownSeconds: 300
+    minImprovement: 20
+    evictionRateLimit: 2

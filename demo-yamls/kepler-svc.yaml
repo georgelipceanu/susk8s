@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kepler
+  namespace: kepler
+  labels:
+    app.kubernetes.io/name: kepler 
+spec:
+  ports:
+  - name: metrics 
+    port: 9102
+    targetPort: 9102
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kepler 

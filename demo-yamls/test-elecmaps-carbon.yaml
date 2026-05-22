@@ -1,0 +1,9 @@
+apiVersion: sustainability.susk8s/v1alpha1
+kind: CarbonInfo
+metadata:
+  name: live-carbon-data
+  namespace: default
+spec:
+  provider: "electricitymaps"
+  region: "IE" 
+  pollSeconds: 60

@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: susk8s-scheduler
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: susk8s-scheduler-binding
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: system:kube-scheduler
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: susk8s-scheduler-volume-binding
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: system:volume-scheduler
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: susk8s-scheduler
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: susk8s-scheduler
+  template:
+    metadata:
+      labels:
+        component: susk8s-scheduler
+    spec:
+      serviceAccountName: susk8s-scheduler
+      containers:
+      - name: scheduler
+        image: susk8s-scheduler:v1
+        imagePullPolicy: IfNotPresent
+        command:
+        - /usr/local/bin/kube-scheduler
+        args:
+        - --config=/etc/kubernetes/scheduler-config.yaml
+        - --v=2
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/kubernetes
+      volumes:
+      - name: config-volume
+        configMap:
+          name: susk8s-scheduler-config
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: susk8s-scheduler-configmap-reader
+  namespace: kube-system
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: susk8s-scheduler-configmap-reader-binding
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: susk8s-scheduler
+  namespace: kube-system
+roleRef:
+  kind: Role
+  name: susk8s-scheduler-configmap-reader
+  apiGroup: rbac.authorization.k8s.io

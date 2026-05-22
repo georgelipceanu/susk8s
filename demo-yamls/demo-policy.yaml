@@ -1,0 +1,12 @@
+apiVersion: sustainability.susk8s/v1alpha1 
+kind: WorkloadPolicy
+metadata:
+  name: carbon-aware-policy
+spec:
+  target:
+    matchLabels:
+      app: sustainability-test
+  maxCarbonIntensity: 400
+  reschedule:
+    enabled: true
+    mode: hard
