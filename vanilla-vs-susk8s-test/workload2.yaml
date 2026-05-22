@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-stress-workload
+  namespace: default
+  labels:
+    app: green-stress
+spec:
+  replicas: 9 # high amount of replicas for better distribution
+  selector:
+    matchLabels:
+      app: green-stress
+  template:
+    metadata:
+      labels:
+        app: green-stress
+        susk8s.io/tier: "ultra-green"
+    spec:
+      containers:
+      - name: cpu-stress
+        image: polinux/stress
+        args: ["stress", "--cpu", "1"] 
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "200m"
